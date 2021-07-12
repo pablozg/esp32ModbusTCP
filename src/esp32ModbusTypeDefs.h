@@ -41,7 +41,7 @@ enum FunctionCode : uint8_t {
 };
 
 enum Error : uint8_t {
-  SUCCES                = 0x00,
+  SUCCESS               = 0x00,
   ILLEGAL_FUNCTION      = 0x01,
   ILLEGAL_DATA_ADDRESS  = 0x02,
   ILLEGAL_DATA_VALUE    = 0x03,

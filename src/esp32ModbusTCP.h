@@ -27,7 +27,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <functional>
 #include <list>
 
-#include <FreeRTOS.h>  // must appear before smphr.h
+#include <FreeRTOS.h>  // must appear before semphr.h
 #include <freertos/semphr.h>
 
 #include <esp32-hal.h>  // for millis() and logging
@@ -45,6 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 class esp32ModbusTCP {
+
   typedef std::function<void(uint16_t packetId, uint8_t slaveAddress, esp32Modbus::FunctionCode fc, uint8_t* data, uint16_t len, void* arg)> OnDataHandler;
   typedef std::function<void(uint16_t packetId, esp32Modbus::Error error, void* arg)> OnErrorHandler;
 
@@ -71,13 +72,14 @@ class esp32ModbusTCP {
   uint16_t writeHoldingRegister(uint16_t address, uint16_t data, void* arg = nullptr);
   uint16_t readHoldingRegisters(uint8_t serverId, uint16_t address, uint16_t numberRegisters, void* arg = nullptr);
   uint16_t writeHoldingRegister(uint8_t serverId, uint16_t address, uint16_t data, void* arg = nullptr);
+  uint16_t readInputRegisters(uint8_t serverId, uint16_t address, uint16_t numberRegisters, void* arg = nullptr);
 
  private:
   uint16_t _addToQueue(ModbusRequest* request, void* arg);
   void _tryToSend();
   void _clearQueue(esp32Modbus::Error error);
   void _tryError(uint16_t packetId, esp32Modbus::Error error, void* arg);
-  void _tryData(const ModbusResponse& response, void* arg);
+  void _tryData(ModbusResponse& response, void* arg);
   void _connect();
   void _disconnect(bool now = false);
   static void _onConnect(void* mb, AsyncClient* client);

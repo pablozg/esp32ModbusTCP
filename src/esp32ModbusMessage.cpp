@@ -85,8 +85,6 @@ ModbusMessage::ModbusMessage(size_t totalLength) :
     _buffer = new uint8_t[_totalLength];
   }
 
-SemaphoreHandle_t ModbusRequest::_semaphore = xSemaphoreCreateBinary();
-
 uint16_t ModbusRequest::_lastPacketId = 0;
 
 uint16_t ModbusRequest::getId() const {
@@ -100,18 +98,9 @@ ModbusRequest::ModbusRequest(size_t totalLength) :
   _functionCode(0),
   _address(0),
   _byteCount(0) {
-    if (xSemaphoreTake(_semaphore, 1000) == pdTRUE) {
-      _packetId = ++_lastPacketId;
-      if (_lastPacketId == 0) _lastPacketId = 1;
-      xSemaphoreGive(_semaphore);
-    } else {
-      log_e("couldn't obtain semaphore");
-    }
+    _packetId = ++_lastPacketId;
+    if (_lastPacketId == 0) _lastPacketId = 1;
   }
-
-ModbusRequest::~ModbusRequest() {
-  vSemaphoreDelete(_semaphore);
-}
 
 ModbusRequest02::ModbusRequest02(uint8_t slaveAddress, uint16_t address, uint16_t numberCoils) :
   ModbusRequest(12) {
@@ -212,7 +201,7 @@ size_t ModbusRequest06::responseLength() const {
 ModbusResponse::ModbusResponse(uint16_t dataLength) :
   ModbusMessage(6 + dataLength),
   _dataLength(dataLength),
-  _error(esp32Modbus::SUCCES) {
+  _error(esp32Modbus::SUCCESS) {
   }
 
 bool ModbusResponse::isValid() const {
@@ -220,8 +209,7 @@ bool ModbusResponse::isValid() const {
   if (_buffer[2] != 0 || _buffer[3] != 0) return false;  // protocol ID
   if (_dataLength != make_word(_buffer[4], _buffer[5])) return false;
   if (_dataLength > 256) return false;
-  else
-    return true;
+  else return true;
 }
 
 bool ModbusResponse::match(const ModbusRequest& request) const {
